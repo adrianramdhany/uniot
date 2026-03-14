@@ -416,9 +416,10 @@
             window.location.href = 'login.html';
         }
 
+        const API_BASE = window.location.origin;
+
         // --- Koneksi WebSocket ---
-        // Ganti '192.168.1.50' dengan IP server Node.js Anda jika diakses dari perangkat lain
-        const socket = io("http://192.168.1.50:3001", { auth: { token: token } });
+        const socket = io(API_BASE, { auth: { token: token } });
         socket.on('connect', () => console.log('Terhubung ke server real-time!', socket.id));
         socket.on('disconnect', () => console.log('Koneksi real-time terputus.'));
         socket.on('newData', (data) => {
@@ -506,14 +507,14 @@
             try {
                 console.log("Memulai loadInitialData...");
                 dashboardContainer.innerHTML = '<p>Memuat perangkat...</p>'; // Update status
-                allUserDevices = await fetchWithAuth('http://192.168.1.50:3001/api/devices') || [];
+                allUserDevices = await fetchWithAuth(`${API_BASE}/api/devices`) || [];
                 populateDeviceLists(allUserDevices);
 
                 dashboardContainer.innerHTML = '<p>Memuat widget...</p>'; // Update status
-                allUserWidgets = await fetchWithAuth('http://192.168.1.50:3001/api/widgets') || [];
+                allUserWidgets = await fetchWithAuth(`${API_BASE}/api/widgets`) || [];
 
                 dashboardContainer.innerHTML = '<p>Memuat data sensor...</p>'; // Update status
-                allSensorData = await fetchWithAuth('http://192.168.1.50:3001/api/data') || [];
+                allSensorData = await fetchWithAuth(`${API_BASE}/api/data`) || [];
 
                 console.log("Data awal berhasil dimuat.");
 
@@ -815,13 +816,13 @@
                 const apiKeyResult = document.getElementById('apiKeyResult');
                 const newApiKey = document.getElementById('newApiKey');
                 try {
-                    const data = await fetchWithAuth('http://192.168.1.50:3001/api/devices', {
+                    const data = await fetchWithAuth(`${API_BASE}/api/devices`, {
                         method: 'POST', body: JSON.stringify({ device_name: deviceName })
                     });
                     newApiKey.textContent = data.apiKey;
                     apiKeyResult.style.display = 'block';
                     document.getElementById('deviceForm').reset();
-                    allUserDevices = await fetchWithAuth('http://192.168.1.50:3001/api/devices');
+                    allUserDevices = await fetchWithAuth(`${API_BASE}/api/devices`);
                     populateDeviceLists(allUserDevices);
                 } catch (error) {
                     alert(error.message);
@@ -846,14 +847,14 @@
                     data_type: document.getElementById('dataType').value
                 };
                 try {
-                    await fetchWithAuth('http://192.168.1.50:3001/api/widgets', {
+                    await fetchWithAuth(`${API_BASE}/api/widgets`, {
                         method: 'POST', body: JSON.stringify(payload)
                     });
                     alert('Widget berhasil dibuat!');
                     document.getElementById('widgetForm').reset();
                     widgetFormContainer.style.display = 'none';
-                    allUserWidgets = await fetchWithAuth('http://192.168.1.50:3001/api/widgets');
-                    allSensorData = await fetchWithAuth('http://192.168.1.50:3001/api/data'); // Refresh data juga
+                    allUserWidgets = await fetchWithAuth(`${API_BASE}/api/widgets`);
+                    allSensorData = await fetchWithAuth(`${API_BASE}/api/data`); // Refresh data juga
                     displayWidgetsForDevice(selectedDeviceId);
                 } catch (error) {
                     alert(error.message);
@@ -866,7 +867,7 @@
                     const deviceId = e.target.dataset.deviceId;
                     if (!confirm('YAKIN menghapus perangkat ini? \nSEMUA widget dan data sensor yang terkait akan HILANG SELAMANYA.')) return;
                     try {
-                        await fetchWithAuth(`http://192.168.1.50:3001/api/devices/${deviceId}`, { method: 'DELETE' });
+                        await fetchWithAuth(`${API_BASE}/api/devices/${deviceId}`, { method: 'DELETE' });
                         alert('Perangkat berhasil dihapus.');
                         await loadInitialData();
                         displayWidgetsForDevice(null);
@@ -882,10 +883,10 @@
                     const widgetId = e.target.dataset.widgetId;
                     if (!confirm('Yakin ingin menghapus widget ini?')) return;
                     try {
-                        await fetchWithAuth(`http://192.168.1.50:3001/api/widgets/${widgetId}`, { method: 'DELETE' });
+                        await fetchWithAuth(`${API_BASE}/api/widgets/${widgetId}`, { method: 'DELETE' });
                         alert('Widget berhasil dihapus.');
                         const selectedDeviceId = activeDeviceSelect.value;
-                        allUserWidgets = await fetchWithAuth('http://192.168.1.50:3001/api/widgets');
+                        allUserWidgets = await fetchWithAuth(`${API_BASE}/api/widgets`);
                         displayWidgetsForDevice(selectedDeviceId);
                     } catch (error) {
                         alert(error.message);
@@ -945,7 +946,7 @@
                     // 2. Cek apakah sudah punya public_slug
                     if (device && device.public_slug) {
                         // JIKA SUDAH ADA: Langsung tampilkan link-nya
-                        const fullUrl = `http://${window.location.hostname}:3001/${device.public_slug}`;
+                        const fullUrl = `${API_BASE}/${device.public_slug}`;
                         prompt("Link Publik SUDAH ADA. Silakan salin:", fullUrl);
                         return; // Berhenti di sini, jangan minta input baru
                     }
@@ -958,7 +959,7 @@
                         customName = customName.replace(/[^a-zA-Z0-9-_]/g, '');
 
                         try {
-                            const response = await fetchWithAuth('http://192.168.1.50:3001/api/devices/share', {
+                            const response = await fetchWithAuth(`${API_BASE}/api/devices/share`, {
                                 method: 'POST',
                                 body: JSON.stringify({
                                     device_id: selectedDeviceId,
@@ -970,7 +971,7 @@
                             device.public_slug = customName;
 
                             // Tampilkan Link
-                            const fullUrl = `http://${window.location.hostname}:3001${response.url}`;
+                            const fullUrl = `${API_BASE}${response.url}`;
                             prompt("Link Publik Berhasil Dibuat! Silakan salin:", fullUrl);
 
                         } catch (error) {

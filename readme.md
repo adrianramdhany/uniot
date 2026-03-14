@@ -124,32 +124,32 @@ EXIT;
 ```
 
 Catatan konfigurasi IP
-- Jika hanya diakses dari mesin yang sama, gunakan `localhost`.
-- Jika ingin diakses dari perangkat lain di jaringan, ganti alamat backend di `login.html`, `register.html`, dan `dashboard.html` dari `http://localhost:3001` menjadi `http://<IP_LAPTOP>:3001` (misal `http://192.168.1.10:3001`).
+- Tidak perlu ubah IP manual di file HTML.
+- Saat menjalankan `npm start`, skrip `prestart` otomatis membuat/memperbarui `.env` dengan `LOCAL_IP` sesuai IP lokal komputer.
+- Frontend sekarang memakai same-origin (`window.location.origin`), jadi API/WebSocket otomatis mengikuti alamat yang dipakai saat membuka aplikasi.
 
 Menjalankan Aplikasi
-Anda biasanya membutuhkan dua terminal terpisah.
-
-- Backend (API server):
+- Jalankan dari folder proyek:
 
 ```bash
-# dari folder proyek
-node index.js
+npm start
 ```
 
-Periksa log untuk pesan seperti `Server berjalan...` dan `Successfully connected to skripsi_iot_db!`.
+- `npm start` akan:
+    1) Generate/update `.env` (`LOCAL_IP` dan `PORT`),
+    2) Menjalankan server Express + Socket.IO,
+    3) Menyajikan file HTML statis dari root proyek.
 
-- Frontend (layanan file statis):
-
-```bash
-# dari folder proyek
-npx http-server -p 3000 -c-1
-```
-
-- Akses UI di browser:
+- Akses UI di browser (contoh):
 
 ```text
-http://localhost:3000/login.html
+http://localhost:3001/login.html
+```
+
+- Untuk perangkat lain di jaringan, gunakan alamat yang muncul di log terminal:
+
+```text
+http://<LOCAL_IP>:3001/login.html
 ```
 
 Simulasi Data (tanpa ESP32)

@@ -3,13 +3,31 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
+
+// Muat variabel .env sederhana tanpa dependensi tambahan.
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+    const envLines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+    envLines.forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+        const separator = trimmed.indexOf('=');
+        if (separator === -1) return;
+        const key = trimmed.slice(0, separator).trim();
+        const value = trimmed.slice(separator + 1).trim();
+        if (key && process.env[key] == null) {
+            process.env[key] = value;
+        }
+    });
+}
 
 // --- Inisialisasi Server (Express + Socket.IO) ---
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const path = require('path');
 
 // Konfigurasi Socket.IO
 const io = new Server(server, {
@@ -19,7 +37,8 @@ const io = new Server(server, {
     }
 });
 
-const port = 3001;
+const port = Number(process.env.PORT) || 3001;
+const localIp = process.env.LOCAL_IP || '127.0.0.1';
 
 // Middleware
 app.use(cors());
@@ -615,4 +634,5 @@ app.get('/api/public/view/:slug', (req, res) => {
 // --- Jalankan Server ---
 server.listen(port, '0.0.0.0', () => {
     console.log(`Server (Express + Socket.IO) berjalan di http://localhost:${port}`);
+    console.log(`Akses dari jaringan lokal: http://${localIp}:${port}`);
 });

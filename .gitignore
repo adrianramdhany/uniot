@@ -14,3 +14,6 @@ yarn-error.log*
 .pnp
 .pnp.js
 .DS_Store
+
+# Local environment config (generated automatically on npm start)
+.env
